@@ -11,7 +11,12 @@ public class Game : PersistableObject {
 	public KeyCode newGameKey = KeyCode.N;
 	public KeyCode saveKey = KeyCode.S;
 	public KeyCode loadKey = KeyCode.L;
+	public KeyCode destroyKey = KeyCode.X;
 	
+	public float CreationSpeed { get; set; }
+	public float DestructionSpeed { get; set; }
+	
+	float creationProgress, destructionProgress;
 	List<Shape> shapes;
 	private string savePath;
 	
@@ -22,7 +27,7 @@ public class Game : PersistableObject {
 	void BeginNewGame()
 	{
 		for (int i = 0; i < shapes.Count; i++) {
-			Destroy(shapes[i].gameObject);
+			shapeFactory.Reclaim(shapes[i]);
 		}
 		shapes.Clear();
 	}
@@ -43,6 +48,26 @@ public class Game : PersistableObject {
 	}
 	
 	
+	
+	void DestroyShape () {
+		if (shapes.Count > 0)
+		{
+			int index = Random.Range(0, shapes.Count);
+			// We must destroy the game object entirely, not just the shape component
+			// Destroy(shapes[index].gameObject);
+			
+			// GC sucks in gaming life, recycle using pools
+			shapeFactory.Reclaim(shapes[index]);
+			
+			// Since we care about speed, not order, we move the last element in and delete teh last index 
+			int lastIndex = shapes.Count - 1;
+			shapes[index] = shapes[lastIndex];
+			shapes.RemoveAt(lastIndex);
+		}
+
+	}
+	
+	
 	void Update () {
 		if (Input.GetKeyDown(createKey)) {
 			CreateShape();
@@ -53,6 +78,19 @@ public class Game : PersistableObject {
 		} else if (Input.GetKeyDown(loadKey)) {
 			BeginNewGame();
 			storage.Load(this);
+		} else if (Input.GetKeyDown(destroyKey)) {
+			DestroyShape();
+		}
+		
+		creationProgress += Time.deltaTime * CreationSpeed;
+		while (creationProgress >= 1f) {
+			creationProgress -= 1f;
+			CreateShape();
+		}
+		destructionProgress += Time.deltaTime * DestructionSpeed;
+		while (destructionProgress >= 1f) {
+			destructionProgress -= 1f;
+			DestroyShape();
 		}
 	}
 	

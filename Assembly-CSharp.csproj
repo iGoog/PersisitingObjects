@@ -62,6 +62,9 @@
     <Compile Include="Assets\Scenes\GameDataWriter.cs" />
     <Compile Include="Assets\Scenes\PersistableObject.cs" />
     <Compile Include="Assets\Scenes\PersistentStorage.cs" />
+    <Compile Include="Assets\Scenes\Shape.cs" />
+    <Compile Include="Assets\Scenes\ShapeFactory.cs" />
+    <None Include="Assets\Scenes\InstancedColors.shader" />
     <Reference Include="UnityEditor.StandardEvents">
       <HintPath>C:/Users/hello/Documents/PersisitingObjects/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
     </Reference>

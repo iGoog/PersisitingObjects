@@ -1,9 +1,13 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
 
 public class Game : PersistableObject {
 	
-	const int saveVersion = 1;
+	const int saveVersion = 2;
 
 	public ShapeFactory shapeFactory;
 	public PersistentStorage storage;
@@ -15,13 +19,39 @@ public class Game : PersistableObject {
 	
 	public float CreationSpeed { get; set; }
 	public float DestructionSpeed { get; set; }
+	public int levelCount;
 	
 	float creationProgress, destructionProgress;
 	List<Shape> shapes;
 	private string savePath;
+	int loadedLevelBuildIndex;
 	
-	void Awake () {
+	void Start () {
 		shapes = new List<Shape>();
+		Debug.Log(Application.isEditor);
+
+		if (Application.isEditor)
+		{
+//			Scene loadedLevel = SceneManager.GetSceneByName("Level 1");
+//			if (loadedLevel.isLoaded)
+//			{
+//				SceneManager.SetActiveScene(loadedLevel);
+//				return;
+//			}
+			Debug.Log(SceneManager.sceneCount);
+			for (int i = 0; i < SceneManager.sceneCount; i++) {
+				Scene loadedScene = SceneManager.GetSceneAt(i);
+				if (loadedScene.name.Contains("Level ") )
+				{
+					Debug.Log(loadedScene.name);
+					SceneManager.SetActiveScene(loadedScene);
+					loadedLevelBuildIndex = loadedScene.buildIndex;
+					return;
+				}
+			}
+		}
+
+		StartCoroutine(LoadLevel(1));
 	}
 	
 	void BeginNewGame()
@@ -80,6 +110,14 @@ public class Game : PersistableObject {
 			storage.Load(this);
 		} else if (Input.GetKeyDown(destroyKey)) {
 			DestroyShape();
+		} else {
+			for (int i = 1; i <= levelCount; i++) {
+				if (Input.GetKeyDown(KeyCode.Alpha0 + i)) {
+					BeginNewGame();
+					StartCoroutine(LoadLevel(i));
+					return;
+				}
+			}
 		}
 		
 		creationProgress += Time.deltaTime * CreationSpeed;
@@ -96,6 +134,7 @@ public class Game : PersistableObject {
 	
 	public override void Save (GameDataWriter writer) {
 		writer.Write(shapes.Count);
+		writer.Write(loadedLevelBuildIndex);
 		for (int i = 0; i < shapes.Count; i++) {
 			writer.Write(shapes[i].ShapeId);
 			writer.Write(shapes[i].MaterialId);
@@ -106,6 +145,7 @@ public class Game : PersistableObject {
 	public override void Load (GameDataReader reader) {
 		int version = reader.Version;
 		int count = version <= 0 ? -version : reader.ReadInt();
+		StartCoroutine(LoadLevel(version < 2 ? 1 : reader.ReadInt()));
 		for (int i = 0; i < count; i++) {
 			int shapeId = reader.ReadInt();
 			int materialId = version > 0 ? reader.ReadInt() : 0;
@@ -114,7 +154,37 @@ public class Game : PersistableObject {
 			shapes.Add(instance);
 		}
 	}
+	/**
+	 * Glorious hacks... We want to add an additive scene, but it
+	 * has to be loaded first ie -
+	 * so...
+	 * yield return null
+	 * 	return function to stack so it runs on next frame
+	 *  so, the scene will be loaded on the next frame
+	 * 
+	 */
+//	IEnumerator LoadLevel () {
+//		SceneManager.LoadScene("Level 1", LoadSceneMode.Additive);
+//		yield return null;
+//		SceneManager.SetActiveScene(SceneManager.GetSceneByName("Level 1"));
+//	}
 	
+	
+	IEnumerator LoadLevel (int levelBuildIndex) {
+		enabled = false;
+		if (loadedLevelBuildIndex > 0) {
+			yield return SceneManager.UnloadSceneAsync(loadedLevelBuildIndex);
+		}
+		yield return SceneManager.LoadSceneAsync(
+			levelBuildIndex, LoadSceneMode.Additive
+		);
+		SceneManager.SetActiveScene(
+			SceneManager.GetSceneByBuildIndex(levelBuildIndex)
+		);
+		loadedLevelBuildIndex = levelBuildIndex;
+		
+		enabled = true;
+	}
 
 	
 }

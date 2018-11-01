@@ -7,19 +7,28 @@ using Random = UnityEngine.Random;
 
 public class Game : PersistableObject {
 	
+	// singleton time
+	public static Game Instance { get; private set; }
+	// OnEnable better than Awake - happens each time after each component's Awake 
+	// method unless the component was saved in a disabled state.
+	void OnEnable () {
+		Instance = this;
+	}
+	
 	const int saveVersion = 2;
 
-	public ShapeFactory shapeFactory;
-	public PersistentStorage storage;
-	public KeyCode createKey = KeyCode.C;
-	public KeyCode newGameKey = KeyCode.N;
-	public KeyCode saveKey = KeyCode.S;
-	public KeyCode loadKey = KeyCode.L;
-	public KeyCode destroyKey = KeyCode.X;
+	[SerializeField] ShapeFactory shapeFactory;
+	[SerializeField] PersistentStorage storage;
+	[SerializeField] KeyCode createKey = KeyCode.C;
+	[SerializeField] KeyCode newGameKey = KeyCode.N;
+	[SerializeField] KeyCode saveKey = KeyCode.S;
+	[SerializeField] KeyCode loadKey = KeyCode.L;
+	[SerializeField] KeyCode destroyKey = KeyCode.X;
+	public SpawnZone SpawnZoneOfLevel { get; set; }
 	
 	public float CreationSpeed { get; set; }
 	public float DestructionSpeed { get; set; }
-	public int levelCount;
+	[SerializeField] int levelCount;
 	
 	float creationProgress, destructionProgress;
 	List<Shape> shapes;
@@ -65,7 +74,8 @@ public class Game : PersistableObject {
 	void CreateShape () {
 		Shape instance = shapeFactory.GetRandom();
 		Transform t = instance.transform;
-		t.localPosition = Random.insideUnitSphere * 5f;
+		// t.localPosition = Random.insideUnitSphere * 5f;
+		t.localPosition = SpawnZoneOfLevel.SpawnPoint;
 		t.localRotation = Random.rotation;
 		t.localScale = Vector3.one * Random.Range(0.1f, 1f);
 		instance.SetColor(Random.ColorHSV(

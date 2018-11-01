@@ -57,13 +57,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scenes\CompositeSpawnZone.cs" />
+    <Compile Include="Assets\Scenes\CubeSpawnZone.cs" />
     <Compile Include="Assets\Scenes\Game.cs" />
     <Compile Include="Assets\Scenes\GameDataReader.cs" />
     <Compile Include="Assets\Scenes\GameDataWriter.cs" />
+    <Compile Include="Assets\Scenes\GameLevel.cs" />
     <Compile Include="Assets\Scenes\PersistableObject.cs" />
     <Compile Include="Assets\Scenes\PersistentStorage.cs" />
     <Compile Include="Assets\Scenes\Shape.cs" />
     <Compile Include="Assets\Scenes\ShapeFactory.cs" />
+    <Compile Include="Assets\Scenes\SpawnZone.cs" />
+    <Compile Include="Assets\Scenes\SphereSpawnZone.cs" />
     <None Include="Assets\Scenes\InstancedColors.shader" />
     <Reference Include="UnityEditor.StandardEvents">
       <HintPath>C:/Users/hello/Documents/PersisitingObjects/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
